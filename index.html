@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Oficina de Animação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="hero">
+    <p class="eyebrow">Projeto Poleia · Unity 6</p>
+    <h1>Oficina de Animação</h1>
+    <p class="lede">Como editar, exportar e testar as animações do Cavaleiro, e qual editor usar em cada caso. A base vem do Mixamo, os ajustes são feitos no UMotion Pro e a exportação vai por cima do mesmo FBX.</p>
+    <div class="pipeline" aria-label="Fluxo principal">
+      <span>Mixamo</span><i>→</i><span class="hot">UMotion Pro</span><i>→</i><span>FBX em Mixamo/Cavaleiro</span><i>→</i><span>Animator e Play</span>
+    </div>
+    <div class="ruler" aria-hidden="true">
+      <div class="ruler-head"><span>sword and shield run · 30 fps</span><span>0 ─ 10 ─ 20 ─ 30</span></div>
+      <div class="ticks"></div>
+      <div class="lanes">
+        <div class="lane"><b>Hips</b><i class="k" style="left:2%"></i><i class="k" style="left:26%"></i><i class="k" style="left:50%"></i><i class="k" style="left:74%"></i><i class="k" style="left:98%"></i></div>
+        <div class="lane"><b>Pé IK</b><i class="k ik" style="left:2%"></i><i class="k ik" style="left:34%"></i><i class="k ik" style="left:67%"></i><i class="k ik" style="left:98%"></i></div>
+        <div class="lane"><b>handslot.r</b><i class="k" style="left:2%"></i><i class="k" style="left:50%"></i><i class="k" style="left:98%"></i></div>
+      </div>
+      <div class="playhead"></div>
+    </div>
+  </header>
+
+  <div class="layout">
+    <nav class="toc" aria-label="Seções">
+      <p>Trilhas</p>
+      <a href="#escolher">Qual editor usar</a>
+      <a href="#fundamentos">Fundamentos</a>
+      <a href="#animation">Janela Animation</a>
+      <a href="#umotion">UMotion Pro</a>
+      <a href="#blender">Blender</a>
+      <a href="#outros">Outros editores</a>
+      <a href="#qualidade">Qualidade</a>
+      <a href="#problemas">Problemas</a>
+    </nav>
+
+    <main>
+      <!-- 1 -->
+      <section id="escolher">
+        <div class="sec-head">
+          <p class="eyebrow">Escolha</p>
+          <h2>Qual editor usar</h2>
+          <p class="lead">Clique no que você quer fazer e veja o editor indicado. A regra que decide quase tudo: a janela Animation do Unity não edita animação de dentro de FBX e, em personagem Humanoid, não grava ossos.</p>
+        </div>
+        <div class="picker">
+          <div class="picker-btns" role="group" aria-label="Tarefas">
+            <button type="button" id="t0" aria-pressed="true" data-i="0">Ajustar animação do Mixamo</button>
+            <button type="button" id="t1" aria-pressed="false" data-i="1">Criar golpe do zero</button>
+            <button type="button" id="t2" aria-pressed="false" data-i="2">Animar porta, baú ou luz</button>
+            <button type="button" id="t3" aria-pressed="false" data-i="3">Mudar como segura a espada</button>
+            <button type="button" id="t4" aria-pressed="false" data-i="4">Mão presa / olhar o alvo</button>
+            <button type="button" id="t5" aria-pressed="false" data-i="5">Cutscene</button>
+            <button type="button" id="t6" aria-pressed="false" data-i="6">Animação base pronta</button>
+          </div>
+          <div class="answer" aria-live="polite">
+            <span class="tag eyebrow">Use</span>
+            <span class="tool" id="ans-tool">UMotion Pro</span>
+            <span class="why" id="ans-why">Edita ossos com FK e IK dentro do Unity e exporta um FBX Humanoid que substitui o arquivo da pasta Mixamo.</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2 -->
+      <section id="fundamentos">
+        <div class="sec-head">
+          <p class="eyebrow">Base</p>
+          <h2>Fundamentos que valem em qualquer editor</h2>
+          <p class="lead">Estes oito conceitos explicam quase todos os problemas que já apareceram no projeto: Read-Only, take errado e animação que não troca.</p>
+        </div>
+        <div class="grid">
+          <div class="card"><h3>Humanoid x Generic</h3><p><b>Humanoid</b> transforma ossos em "músculos" padronizados, e por isso a mesma animação serve no Knight e no Esqueleto. <b>Generic</b> guarda a rotação real de cada osso. O Cavaleiro é Humanoid.</p></div>
+          <div class="card"><h3>FBX x .anim</h3><p>Tudo dentro de um <b>FBX</b> é somente leitura no Unity. O <b>.anim</b> é editável. Para editar FBX: duplicar (<kbd>Ctrl</kbd>+<kbd>D</kbd>) ou editar fora e exportar de novo.</p></div>
+          <div class="card"><h3>Take e clipe</h3><p>O <b>take</b> é a animação dentro do FBX (o Mixamo chama de <code>mixamo.com</code>). O <b>clipe</b> é o que o Unity cria a partir dele, no campo <b>Source Take</b>. O nome do take define o código interno do clipe.</p></div>
+          <div class="card"><h3>Keyframe e curva</h3><p>A chave é a pose num quadro; o editor calcula o meio. Curva lisa dá um movimento suave; curva com quina dá impacto. As tangentes podem ser Auto, Linear ou Constant.</p></div>
+          <div class="card"><h3>FK x IK</h3><p><b>FK</b>: gira osso por osso, bom para arcos. <b>IK</b>: move a mão ou o pé e o editor calcula o resto. Regra prática: pés em IK, braços em FK.</p></div>
+          <div class="card"><h3>Loop</h3><p>Primeiro e último quadro iguais e <b>Loop Time</b> ligado. No Poleia, o <code>ImportadorDeArte</code> liga o loop pelos nomes da tabela <code>ClipesDoMixamo</code>.</p></div>
+          <div class="card"><h3>Root motion</h3><p>No Poleia quem move o personagem é o script (<code>applyRootMotion</code> desligado). As animações usam <b>Bake Into Pose</b>.</p></div>
+          <div class="card"><h3>Quadros por segundo</h3><p>O Mixamo exporta a 30 fps. Um golpe rápido tem de 15 a 25 quadros; um ciclo de corrida, de 16 a 24.</p></div>
+        </div>
+      </section>
+
+      <!-- 3 -->
+      <section id="animation">
+        <div class="sec-head">
+          <p class="eyebrow">Unity</p>
+          <h2>Janela Animation</h2>
+          <p class="lead">Use para objetos simples e ajustes rápidos em arquivos .anim. Para ossos de personagem Humanoid, use o UMotion.</p>
+        </div>
+        <div class="two">
+          <div class="card ok"><h3>Funciona bem</h3><ul><li>Porta, baú, alavanca, plataforma, luz</li><li>Personagens Generic</li><li>Cor de material, ativar e desativar objetos</li><li>Eventos de animação (som do passo)</li></ul></div>
+          <div class="card no"><h3>Trava</h3><ul><li>Clipe dentro de FBX: <b>Read-Only</b></li><li>Humanoid: só grava músculos, não ossos</li><li>Objeto <b>[UMotion Locked]</b>: feche o UMotion antes</li></ul></div>
+        </div>
+        <h3>Criar uma animação</h3>
+        <ol class="steps">
+          <li><span>Selecione o objeto na Hierarchy e abra <b>Window → Animation → Animation</b> (<kbd>Ctrl</kbd>+<kbd>6</kbd>).</span></li>
+          <li><span>Clique em <b>Create</b> e salve o .anim, por exemplo em <span class="path">Assets/Poleia/Animacao/Objetos</span>.</span></li>
+          <li><span>Ligue o <b>Record</b> (círculo vermelho). No quadro 0, posicione o objeto.</span></li>
+          <li><span>Vá até outro quadro e mude posição ou rotação. Cada mudança vira uma chave.</span></li>
+          <li><span>Desligue o Record, toque com Play e suavize na aba <b>Curves</b>.</span></li>
+        </ol>
+        <div class="tablebox">
+          <table>
+            <thead><tr><th>Ação</th><th>Atalho</th></tr></thead>
+            <tbody>
+              <tr><td>Abrir a janela</td><td><kbd>Ctrl</kbd>+<kbd>6</kbd></td></tr>
+              <tr><td>Quadro anterior / próximo</td><td><kbd>,</kbd> / <kbd>.</kbd></td></tr>
+              <tr><td>Chave anterior / próxima</td><td><kbd>Alt</kbd>+<kbd>,</kbd> / <kbd>Alt</kbd>+<kbd>.</kbd></td></tr>
+              <tr><td>Início / fim</td><td><kbd>Shift</kbd>+<kbd>,</kbd> / <kbd>Shift</kbd>+<kbd>.</kbd></td></tr>
+              <tr><td>Adicionar chave</td><td><kbd>K</kbd></td></tr>
+              <tr><td>Enquadrar tudo / seleção</td><td><kbd>A</kbd> / <kbd>F</kbd></td></tr>
+              <tr><td>Alternar Dopesheet e Curves</td><td><kbd>C</kbd></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- 4 -->
+      <section id="umotion">
+        <div class="sec-head">
+          <p class="eyebrow">Fluxo principal</p>
+          <h2>UMotion Pro no Poleia</h2>
+          <p class="lead">O UMotion mexe em ossos de verdade, tem IK e exporta um FBX Humanoid que substitui o arquivo da pasta Mixamo. O arquivo nunca muda de nome nem de lugar, então o Animator continua apontando para ele.</p>
+        </div>
+        <div class="diagram" role="img" aria-label="Fluxo: FBX do Mixamo, Import Clips, editar ossos, exportar Fbx Binary, Unity reimporta, Animator e jogo">
+          <svg viewBox="0 0 760 250">
+            <defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path class="d-arrow" d="M0 0L10 5L0 10z"/></marker></defs>
+            <g>
+              <path class="d-line" d="M232 70H276" marker-end="url(#arr)"/>
+              <path class="d-line" d="M480 70H524" marker-end="url(#arr)"/>
+              <path class="d-line" d="M628 100V150" marker-end="url(#arr)"/>
+              <path class="d-line" d="M528 180H484" marker-end="url(#arr)"/>
+              <path class="d-line" d="M280 180H236" marker-end="url(#arr)"/>
+            </g>
+            <rect class="d-box" x="32" y="40" width="200" height="60" rx="10"/><text class="d-name" x="132" y="66" text-anchor="middle">FBX do Mixamo</text><text class="d-sub" x="132" y="86" text-anchor="middle">pasta Mixamo/Cavaleiro</text>
+            <rect class="d-box" x="280" y="40" width="200" height="60" rx="10"/><text class="d-name" x="380" y="66" text-anchor="middle">Import Clips</text><text class="d-sub" x="380" y="86" text-anchor="middle">Clip Editor do UMotion</text>
+            <rect class="d-box" x="528" y="40" width="200" height="60" rx="10"/><text class="d-name" x="628" y="66" text-anchor="middle">Editar os ossos</text><text class="d-sub" x="628" y="86" text-anchor="middle">Auto Key, IK e camadas</text>
+            <rect class="d-box" x="528" y="150" width="200" height="60" rx="10"/><text class="d-name" x="628" y="176" text-anchor="middle">Exportar Fbx Binary</text><text class="d-sub" x="628" y="196" text-anchor="middle">por cima do mesmo FBX</text>
+            <rect class="d-box" x="280" y="150" width="200" height="60" rx="10"/><text class="d-name" x="380" y="176" text-anchor="middle">Unity reimporta</text><text class="d-sub" x="380" y="196" text-anchor="middle">Source Take = editado</text>
+            <rect class="d-box hot" x="32" y="150" width="200" height="60" rx="10"/><text class="d-name" x="132" y="176" text-anchor="middle">Animator e jogo</text><text class="d-sub" x="132" y="196" text-anchor="middle">preview e Play</text>
+          </svg>
+        </div>
+
+        <div class="two">
+          <div class="card"><span class="tag">Janela</span><h3>Clip Editor</h3><p>Projeto, lista de clipes, linha do tempo, curvas, importar e exportar.</p></div>
+          <div class="card"><span class="tag">Janela</span><h3>Pose Editor</h3><p>Seleciona o personagem, alterna Pose Mode e Config Mode, ferramentas, IK, Auto Key, Copy e Paste Pose.</p></div>
+        </div>
+
+        <h3>Preparação (uma vez só)</h3>
+        <ol class="steps">
+          <li><span>Deixe o Cavaleiro na cena com espada e escudo nas mãos.</span></li>
+          <li><span>No Clip Editor, abra <span class="path">Animacao/UMotion/Cavaleiro/umotion_project</span>.</span></li>
+          <li><span>No Pose Editor, selecione o personagem. Ele fica <b>[UMotion Locked]</b> enquanto o projeto estiver aberto.</span></li>
+          <li><span>Em <b>Config Mode</b>, rode o <b>IK Setup Wizard</b> para as pernas e volte ao <b>Pose Mode</b>.</span></li>
+        </ol>
+
+        <h3>Editar</h3>
+        <ol class="steps">
+          <li><span><b>File → Import Clips</b> e escolha o FBX em <span class="path">Arte/Animacoes/Mixamo/Cavaleiro/</span>.</span></li>
+          <li><span>Mantenha o nome do clipe <b>igual ao nome do arquivo</b>, por exemplo <code>sword and shield run</code>.</span></li>
+          <li><span>Converta as pernas de FK para IK para os pés ficarem presos no chão.</span></li>
+          <li><span>Ligue <b>Auto Key</b>, vá ao quadro, selecione o osso e gire.</span></li>
+          <li><span>Para corrigir a animação inteira de uma vez, use uma <b>camada aditiva</b> (Layers).</span></li>
+        </ol>
+
+        <h3>Exportar por cima do FBX</h3>
+        <div class="inspector">
+          <div class="bar">Configurações de exportação</div>
+          <dl>
+            <dt>Export Format</dt><dd>Fbx Binary</dd>
+            <dt>Export</dt><dd>Current Clip</dd>
+            <dt>Destination File</dt><dd>Assets/Poleia/Arte/Animacoes/Mixamo/Cavaleiro/sword and shield run.fbx</dd>
+          </dl>
+        </div>
+        <ol class="steps">
+          <li><span>Exporte e confirme a substituição.</span></li>
+          <li><span>Feche o projeto do UMotion ou saia do Pose Mode.</span></li>
+          <li><span>No Inspector do FBX, aba <b>Animation</b>: confira se <b>Source Take</b> mostra <code>sword and shield run</code>, não <code>mixamo.com</code>. Se ainda estiver errado, clique em <b>Reimport</b>.</span></li>
+          <li><span>Teste no preview do Animator e no Play.</span></li>
+        </ol>
+        <p class="note key">O FBX exportado pelo UMotion guarda dois takes, o original e o editado. O <code>ImportadorDeArte</code> foi ajustado para usar o editado. Se o nome do clipe mudar, o código interno muda junto e o Animator mostra <b>Missing</b>.</p>
+
+        <h3>Dicas</h3>
+        <div class="grid">
+          <div class="card"><h3>Salve o projeto</h3><p>File → Save antes de exportar. O projeto guarda camadas e chaves; o FBX é só o resultado.</p></div>
+          <div class="card"><h3>Loop perfeito</h3><p>Copy Pose no quadro 0 e Paste Pose no último.</p></div>
+          <div class="card"><h3>Mirror Editing</h3><p>Edita os dois lados ao mesmo tempo. Ótimo para corrida e idle.</p></div>
+          <div class="card"><h3>Child-Of</h3><p>Prende a mão esquerda no cabo da espada durante um trecho, para golpes com as duas mãos.</p></div>
+          <div class="card"><h3>Unapplied Modifications</h3><p>Clique em Apply ou descarte antes de trocar de quadro ou de clipe.</p></div>
+          <div class="card"><h3>Arma girando no golpe</h3><p>Gire o <code>handslot.r</code> ou o <code>handslot.l</code>. Teste primeiro com uma rotação grande num quadro só.</p></div>
+        </div>
+      </section>
+
+      <!-- 5 -->
+      <section id="blender">
+        <div class="sec-head">
+          <p class="eyebrow">Gratuito</p>
+          <h2>Blender</h2>
+          <p class="lead">A melhor opção para criar uma animação do zero com controle total. O custo é aprender um programa grande.</p>
+        </div>
+        <div class="two">
+          <div class="card"><span class="tag">Importar</span><ol><li>File → Import → FBX</li><li>Armature: <b>Automatic Bone Orientation</b></li><li>Escala do Mixamo costuma ser 0.01</li></ol></div>
+          <div class="card"><span class="tag">Animar</span><ol><li>Pose Mode (<kbd>Ctrl</kbd>+<kbd>Tab</kbd>)</li><li>Dope Sheet → Action Editor; nome final da Action</li><li>Girar <kbd>R</kbd>, mover <kbd>G</kbd>, chave <kbd>I</kbd></li><li>Graph Editor para suavizar</li></ol></div>
+        </div>
+        <div class="inspector">
+          <div class="bar">File → Export → FBX</div>
+          <dl>
+            <dt>Object Types</dt><dd>Armature (+ Mesh se quiser o modelo)</dd>
+            <dt>Apply Scalings</dt><dd>FBX All</dd>
+            <dt>Forward / Up</dt><dd>-Z Forward / Y Up</dd>
+            <dt>Add Leaf Bones</dt><dd>desmarcado</dd>
+            <dt>Bake Animation</dt><dd>marcado; NLA Strips e All Actions desmarcados</dd>
+            <dt>Nome do arquivo</dt><dd>o mesmo do FBX que vai substituir</dd>
+          </dl>
+        </div>
+        <p class="note">Mantenha 30 fps. Bloqueie as poses com interpolação Constant (<kbd>T</kbd> no Graph Editor) e só depois troque para Bezier.</p>
+      </section>
+
+      <!-- 6 -->
+      <section id="outros">
+        <div class="sec-head">
+          <p class="eyebrow">Comparação</p>
+          <h2>Outros editores</h2>
+          <p class="lead">O Cascadeur é o melhor complemento para golpes com peso. O Animation Rigging corrige no jogo o que não precisa estar no clipe. Os preços mudam, então confira no site antes de comprar.</p>
+        </div>
+        <div class="tablebox">
+          <table>
+            <thead><tr><th>Editor</th><th>Custo</th><th>Melhor para</th><th>Ponto fraco</th></tr></thead>
+            <tbody>
+              <tr><td class="tool"><a href="https://cascadeur.com" target="_blank" rel="noopener">Cascadeur</a></td><td><span class="chip free">grátis com limites</span></td><td>Golpes, saltos e quedas com física; AutoPosing e AutoPhysics</td><td>Programa separado; o FBX passa pelo Unity</td></tr>
+              <tr><td class="tool"><a href="https://www.mixamo.com" target="_blank" rel="noopener">Mixamo</a></td><td><span class="chip free">grátis</span></td><td>Base pronta para Humanoid</td><td>Não edita; tudo parece igual sem ajuste</td></tr>
+              <tr><td class="tool">Animation Rigging</td><td><span class="chip free">grátis</span></td><td>Mão presa na arma, cabeça olhando o alvo, pé em rampa</td><td>Não cria clipes, só corrige por cima</td></tr>
+              <tr><td class="tool">Timeline</td><td><span class="chip free">grátis</span></td><td>Cutscenes, câmeras, sequências com áudio</td><td>Não é para editar ossos</td></tr>
+              <tr><td class="tool">UMotion Community</td><td><span class="chip free">grátis</span></td><td>Testar o UMotion</td><td>Sem IK e sem camadas</td></tr>
+              <tr><td class="tool">Maya / 3ds Max</td><td><span class="chip paid">assinatura</span></td><td>Estúdios grandes</td><td>Caro e difícil de aprender, sem vantagem para o Poleia hoje</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="two">
+          <div class="card"><span class="tag">Cascadeur em 5 passos</span><ol><li>Importe o FBX</li><li>Quick Rigging Tool</li><li>Poses-chave com AutoPosing</li><li>AutoPhysics para peso e equilíbrio</li><li>Exporte FBX com o nome certo</li></ol></div>
+          <div class="card"><span class="tag">Animation Rigging no Cavaleiro</span><ul><li>Package Manager → Animation Rigging</li><li>Rig Builder no objeto com Animator + filho com Rig</li><li><b>Two Bone IK</b>: mão no cabo da espada</li><li><b>Multi-Aim</b>: cabeça olha o alvo</li><li>Weight por script para ligar só quando precisar</li></ul></div>
+        </div>
+      </section>
+
+      <!-- 7 -->
+      <section id="qualidade">
+        <div class="sec-head">
+          <p class="eyebrow">Ofício</p>
+          <h2>Animações com peso</h2>
+          <p class="lead">O que separa uma animação amadora de uma boa é tempo e peso, não a quantidade de chaves.</p>
+        </div>
+        <div class="card swing">
+          <span class="tag">Exemplo: golpe de 20 quadros a 30 fps (0,67 s)</span>
+          <div class="swing-bar" aria-label="Guarda 2 quadros, antecipação 5, golpe 3, impacto 2, recuperação 8">
+            <span class="ph-guard"></span><span class="ph-guard"></span>
+            <span class="ph-ant"></span><span class="ph-ant"></span><span class="ph-ant"></span><span class="ph-ant"></span><span class="ph-ant"></span>
+            <span class="ph-hit" style="opacity:.75"></span><span class="ph-hit" style="opacity:.85"></span><span class="ph-hit"></span>
+            <span class="ph-hold"></span><span class="ph-hold"></span>
+            <span class="ph-rec"></span><span class="ph-rec"></span><span class="ph-rec"></span><span class="ph-rec"></span><span class="ph-rec"></span><span class="ph-rec"></span><span class="ph-rec"></span><span class="ph-rec"></span>
+          </div>
+          <div class="swing-scale"><span>0</span><span>5</span><span>10</span><span>15</span><span>20</span></div>
+          <div class="swing-legend">
+            <span><i class="ph-guard"></i>Guarda</span>
+            <span><i class="ph-ant"></i>Antecipação (3 a 6 quadros)</span>
+            <span><i class="ph-hit"></i>Golpe</span>
+            <span><i class="ph-hold"></i>Impacto congelado (1 a 3)</span>
+            <span><i class="ph-rec"></i>Recuperação, mais longa</span>
+          </div>
+        </div>
+        <h3>Método pose a pose</h3>
+        <ol class="steps">
+          <li><span><b>Bloqueio</b>: só as poses-chave, com tangente Constant.</span></li>
+          <li><span><b>Tempo</b>: arraste as chaves até o ritmo ficar certo.</span></li>
+          <li><span><b>Intermediárias</b>: a pose do meio onde o arco ou o peso pede.</span></li>
+          <li><span><b>Suavização</b>: tangentes suaves e curvas limpas.</span></li>
+          <li><span><b>Polimento</b>: atraso dos membros, balanço do escudo.</span></li>
+        </ol>
+        <div class="grid">
+          <div class="card"><h3>Arcos</h3><p>A ponta da espada desenha uma curva, nunca uma linha reta.</p></div>
+          <div class="card"><h3>Atraso</h3><p>A mão chega depois do ombro, e o escudo depois do braço.</p></div>
+          <div class="card"><h3>Peso</h3><p>O quadril desce no apoio de cada passo e no impacto.</p></div>
+          <div class="card"><h3>Ciclo de corrida</h3><p>Contato, descida, passagem e subida, espelhadas para a outra perna. O quadril sobe e desce duas vezes por ciclo.</p></div>
+          <div class="card"><h3>Armas</h3><p>Posição fixa: prefab <code>Cavaleiro_Visual</code> ou <code>ConstrutorDeVisuais.cs</code>. Giro durante o golpe: curva no <code>handslot</code>.</p></div>
+          <div class="card"><h3>Teste no jogo</h3><p>O preview não mostra transições nem câmera. Ajuste o tempo olhando pela câmera do jogador.</p></div>
+        </div>
+      </section>
+
+      <!-- 8 -->
+      <section id="problemas">
+        <div class="sec-head">
+          <p class="eyebrow">Diagnóstico</p>
+          <h2>Problemas e soluções</h2>
+          <p class="lead">Todos estes já aconteceram no Poleia. Digite uma palavra do sintoma para filtrar a lista.</p>
+        </div>
+        <div class="search">
+          <input id="busca" type="search" placeholder="Ex.: rosa, missing, read-only, loop" aria-label="Filtrar problemas">
+          <small id="contagem"></small>
+        </div>
+        <div class="tablebox">
+          <table class="problems">
+            <thead><tr><th>Sintoma</th><th>Causa</th><th>Solução</th></tr></thead>
+            <tbody id="lista">
+              <tr><td>Janela Animation mostra Read-Only</td><td>O clipe está dentro de um FBX</td><td>Editar no UMotion e exportar, ou duplicar em .anim (<kbd>Ctrl</kbd>+<kbd>D</kbd>)</td></tr>
+              <tr><td>Não consigo girar a cabeça na janela Animation</td><td>Humanoid grava músculos, não ossos</td><td>Usar o UMotion ou o Blender</td></tr>
+              <tr><td>Exportei e o preview toca a versão antiga</td><td>O clipe usa o take <code>mixamo.com</code></td><td>Reimport e conferir Source Take</td></tr>
+              <tr><td>Animação sumiu do Animator (Missing)</td><td>O take mudou e o código interno do clipe também</td><td>Arrastar o clipe de novo para o Motion; manter o mesmo nome do clipe</td></tr>
+              <tr><td>Aviso "fora da tabela ClipesDoMixamo"</td><td>Nome do FBX não está na tabela do importador</td><td>Manter o nome original ou adicionar o novo na tabela</td></tr>
+              <tr><td>Aviso "Main Object Name does not match"</td><td>O .anim foi renomeado por fora</td><td>Renomear no Unity para o mesmo nome do clipe</td></tr>
+              <tr><td>UMotion não salva: arquivo já existe</td><td>Exportação para um .anim existente</td><td>Outro nome ou confirmar a substituição</td></tr>
+              <tr><td>Personagem rosa</td><td>Material sem o shader da URP</td><td>Reimport do FBX do personagem</td></tr>
+              <tr><td>Personagem não obedece o Animator</td><td>Está [UMotion Locked]</td><td>Fechar o projeto do UMotion ou sair do Pose Mode</td></tr>
+              <tr><td>Corrida desliza no chão</td><td>Velocidade do script diferente da passada</td><td>Ajustar <code>ritmoDaCorrida</code> no ConfigCavaleiro</td></tr>
+              <tr><td>Loop dá um pulo no fim</td><td>Primeiro e último quadro diferentes</td><td>Copy Pose do quadro 0, Paste Pose no último</td></tr>
+              <tr><td>Pés escorregam ou atravessam o chão</td><td>Pés em FK</td><td>Converter as pernas para IK e prender os pés</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card">
+          <span class="tag">Checklist antes de exportar</span>
+          <ul class="checklist" id="check">
+            <li><label><input type="checkbox" id="c1"><span>Nome do clipe igual ao nome do arquivo</span></label></li>
+            <li><label><input type="checkbox" id="c2"><span>Projeto do UMotion salvo</span></label></li>
+            <li><label><input type="checkbox" id="c3"><span>Primeiro e último quadro iguais (se for loop)</span></label></li>
+            <li><label><input type="checkbox" id="c4"><span>Exportando para o FBX certo em Mixamo/Cavaleiro</span></label></li>
+            <li><label><input type="checkbox" id="c5"><span>Source Take conferido, preview no Animator e teste no Play</span></label></li>
+          </ul>
+          <button type="button" class="reset" id="limpar">Desmarcar tudo</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer>Feito para o projeto Poleia (Unity 6000.3, URP, UMotion Pro 1.29). Os atalhos do Blender e do Cascadeur podem variar conforme a versão.</footer>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
